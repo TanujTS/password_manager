@@ -17,6 +17,7 @@ string encryptDecrypt(string text, char key = 'K')
     {
         result[i] ^= key;
     }
+    return result;
 }
 
 // Class to store password details
@@ -91,6 +92,7 @@ bool hasCommonPatterns(const string &password)
 // Evaluate password strength
 PasswordStrength evaluatePasswordStrength(const string &password)
 {
+    // todo: add check for special symbols: @#$
     PasswordStrength strength;
     strength.score = 0;
 
@@ -135,7 +137,7 @@ class PasswordManager
 private:
     Password passwordList[MAX_PASSWORDS];
     int passwordCount = 0;
-    string masterPassword;
+    string masterPassword = "tanuj123";
     string filename = "passwords.txt";
 
 public:
@@ -187,8 +189,8 @@ public:
 
         for (int i = 0; i < passwordCount; ++i)
         {
-            file << passwordList[i].getAccount() << " "
-                 << passwordList[i].getUsername() << " "
+            file << passwordList[i].getAccount() << "|"
+                 << passwordList[i].getUsername() << "|"
                  << passwordList[i].getEncryptedPassword() << "\n";
         }
         file.close();
@@ -200,11 +202,18 @@ public:
         if (!file)
             return;
 
-        string acc, user, encPass;
+        string line;
         passwordCount = 0;
 
-        while (file >> acc >> user >> encPass && passwordCount < MAX_PASSWORDS)
+        while (getline(file, line) && passwordCount < MAX_PASSWORDS)
         {
+            size_t pos1 = line.find("|");
+            size_t pos2 = line.find("|", pos1 + 1);
+            if (pos1 == string::npos || pos2 == string::npos)
+                continue;
+            string acc = line.substr(0, pos1);
+            string user = line.substr(pos1 + 1, pos2 - pos1 - 1);
+            string encPass = line.substr(pos2 + 1);
             passwordList[passwordCount++] = Password(acc, user, encPass, true);
         }
         file.close();
